@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+
+VERSION='0.0.0'
+
+source "/.bpan/lib/bpan.bash" --
+bpan:source bashplus +err
+
+main() (
+  set -x
+
+  init
+
+  clone-bpan
+
+  clone-package
+
+  export-gha-vars
+
+  cd package || exit
+
+  bpan publish
+)
+
+init() {
+  git config \
+    --global \
+    --add safe.directory /github/workspace
+
+  [[ ${github_json-} ]] || die
+
+  request_json=$(gh event.client_payload)
+
+  if true || # XXX send in request
+     [[ ${bpan_publish_debug-} == true ]]; then
+    export BPAN_INDEX_UPDATE_DEBUG=true
+    export BPAN_DEBUG=-x
+    export BPAN_DEBUG_BASH=1
+    export BPAN_DEBUG_BASH_X=-x
+    export INI_DEBUG_BASH_X=+x
+  fi
+}
+
+clone-bpan() {
+  local source branch
+  source=https://github.com/bpan-org/bpan
+
+  branch=$(rq '"app-branch"')
+
+  git clone --quiet \
+    --branch="$branch" \
+    "$source" \
+    bpan
+
+  index_repo=$(gh repository)
+  index_url=https://github.com/$index_repo
+  git config -f bpan/config index.bpan.source "$index_url"
+
+  index_owner=$(gh repository_owner)
+  mkdir -p "bpan/local/src/github/$index_owner"
+  ln -s "$PWD" "bpan/local/src/github/$index_repo"
+
+  set +eu
+  source bpan/.rc
+  set -eu
+}
+
+clone-package() {
+  local package repo source version
+  package=$(rq package)
+  repo=${package#github:}
+  source=https://github.com/$repo
+  version=$(rq version)
+
+  git clone --quiet \
+    "$source" \
+    package
+
+  git -C package \
+    reset --hard \
+    "$version"
+}
+
+export-gha-vars() {
+  gha_token=$(gh token)
+  export gha_token
+  gha_repository=$(gh repository)
+  export gha_repository
+  gha_run_id=$(gh run_id)
+  export gha_run_id
+  gha_event_comment_url=$(rq '"comment-url"')
+  export gha_event_comment_url
+  gha_event_comment_body=$(rq '"comment-body"')
+  export gha_event_comment_body
+  gha_event_comment_reactions_url=$(rq '"reactions-url"')
+  export gha_event_comment_reactions_url
+  gha_run_id=$(gh run_id)
+  export gha_run_id
+  gha_triggering_actor=$(gh triggering_actor)
+  export gha_triggering_actor
+
+  local package name
+  package=$(rq package)
+  name=${package#github:}
+
+  gha_request_package=$package
+  export gha_request_package
+  gha_request_owner=${name%%/*}
+  export gha_request_owner
+  gha_request_repo=${name#*/}
+  export gha_request_repo
+  gha_request_version=$(rq version)
+  export gha_request_version
+  gha_request_commit=$(rq commit)
+  export gha_request_commit
+}
+
+gh() ( jq -r ".$1" <<<"$github_json" )
+rq() ( jq -r ".$1" <<<"$request_json" )
+
+tmate() (
+  command tmate -S /tmp/tmate.sock new-session -d
+  command tmate -S /tmp/tmate.sock wait tmate-ready
+  echo
+  command tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+  while true; do
+    echo
+    command tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+    sleep 5
+  done
+)
+
+main "$@"

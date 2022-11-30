@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+source "$BPAN_ROOT/lib/bpan.bash" --
+bpan:source bashplus +err +say
+
+set -x
+
+export BASHPLUS_DEBUG_STACK=1
+export BPAN_CONFIG_EXTRA=$PWD/test/config
+
+index_name=bpan-index-$(date +%Y-%m-%d-%H-%M-%S)
+index_repo=bpan-org/$index_name
+index_dir=test/$index_name
+index_url=git@github.com:$index_repo
+pkgs=(
+  bpan-org/bashplus
+  bpan-org/getopt-bash
+  bpan-org/ini-bash
+  bpan-org/test-tap-bash
+  bpan-org/md2man
+)
+
+rm -fr "$BPAN_ROOT/local/"
+rm -fr "$index_dir"
+rm -f "$BPAN_CONFIG_EXTRA"
+
+git hub repo-new "$index_repo"
+
+GIT_HUB_MSG='BPAN Index Publish Log' \
+  git hub issue-new "$index_repo"
+
+git hub clone bpan-org/bpan-index "$index_dir"
+
+root_commit=$(git -C "$index_dir" rev-list HEAD | tail -n1)
+
+git -C "$index_dir" reset --hard "$root_commit"
+
+grep -A9999 '^\[' index.ini > "$index_dir/index.ini"
+
+git -C "$index_dir" commit -a --amend --no-edit
+
+git -C "$index_dir" config \
+  remote.origin.url "$index_url"
+
+git -C "$index_dir" push origin main
+
+rm -fr "$index_dir"
+
+cat >"$BPAN_CONFIG_EXTRA" <<...
+[index "new"]
+source = https://github.com/$index_repo
+...
+
+for pkg in "${pkgs[@]}"; do
+  say -y "Register $pkg..."
+
+  rm -fr pkg
+  git hub clone "$pkg" pkg
+  (
+    cd pkg
+    bpan publish --register --index=new | tee /tmp/out
+    pr_num=$(tail -n1 /tmp/out)
+    [[ $pr_num =~ /[0-9]+$ ]] || exit 0
+    pr_num=${pr_num##*/}
+    git hub -v pr-merge --method=rebase "$index_repo" "$pr_num"
+  )
+  rm -fr pkg
+done
+
+rm -f "$BPAN_CONFIG_EXTRA"
+
+git hub repo-delete "@/$index_name"
+
+set +x
+
+git hub repo "$index_repo"
