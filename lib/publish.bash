@@ -438,8 +438,8 @@ publish:register-check() {
 
   [[ $package_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
     error "Config package.version '$package_version' does not match '#.#.#'"
-  [[ $package_version != 0.0.0 ]] ||
-    error "Can't register package with version '0.0.0'." \
+  [[ $package_version != 0.1.0 ]] ||
+    error "Can't register package with version '0.1.0'." \
           "Try 'bpan publish --bump'."
   o "Package version '$package_version' looks ok"
 

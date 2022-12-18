@@ -1,10 +1,10 @@
 [bpan]
-version = 0.1.96
-updated = 2022-12-11-19-44-39
+version = 0.1.103
+updated = 2022-12-18T18:31:46Z
 
 [package]
 name = bpan-plugin-publish-gha
-version = 0.0.0
+version = 0.1.0
 title = BPAN GHA Publish/Register Support
 license = MIT
 copyright = 2022
