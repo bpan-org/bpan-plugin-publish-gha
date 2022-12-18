@@ -57,7 +57,7 @@ for pkg in "${pkgs[@]}"; do
   rm -fr pkg
   git hub clone "$pkg" pkg
   (
-    cd pkg
+    cd pkg || exit
     bpan publish --register --index=new | tee /tmp/out
     pr_num=$(tail -n1 /tmp/out)
     [[ $pr_num =~ /[0-9]+$ ]] || exit 0

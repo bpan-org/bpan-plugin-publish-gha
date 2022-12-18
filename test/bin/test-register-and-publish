@@ -43,7 +43,7 @@ source = https://github.com/$index_repo
 (
   rm -fr "$index_dir"
   git hub clone "$index_repo" "$index_dir"
-  cd "$index_dir"
+  cd "$index_dir" || exit
   git reset --hard "$(git rev-list --max-parents=0 HEAD)"
   git push -f
   git hub repo-delete "ingydotnet/$index_name" || true
@@ -55,7 +55,7 @@ source = https://github.com/$index_repo
 )
 
 (
-  cd "$package_dir"
+  cd "$package_dir" || exit
 
   git reset --hard "$register_version"
   bpan publish --index="$index_id" "${register[@]}" | tee /tmp/out
@@ -89,7 +89,7 @@ source = https://github.com/$index_repo
 )
 
 (
-  cd "$package_dir"
+  cd "$package_dir" || exit
   git reset --hard "$publish_version"
   bpan publish --index="$index_id"
 )
