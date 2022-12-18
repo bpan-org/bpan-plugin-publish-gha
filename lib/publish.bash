@@ -193,32 +193,14 @@ publish-gha:setup() {
   index_file_dir=/github/workspace
   index_file_path=/github/workspace/$index_file_name
 
+  publish:get-package-fields
+
   package_id=$gha_request_package
   package_version=$gha_request_version
   package_commit=$gha_request_commit
   comment_body=$(
     grep -v '^\*\*'"$APP"' index updater.*\*\*' \
       <<<"$gha_event_comment_body"
-  )
-  package_title=$(
-    git config --file="$config_file" \
-      package.title
-  )
-  package_license=$(
-    git config --file="$config_file" \
-      package.license
-  )
-  package_summary=$(
-    git config --file="$config_file" \
-      package.summary || true
-  )
-  package_type=$(
-    git config --file="$config_file" \
-      package.type
-  )
-  package_tag=$(
-    git config --file="$config_file" \
-      package.tag || true
   )
 
   job_url=$(
@@ -410,31 +392,7 @@ publish:register-check() {
   package_name=$pkg_name
   o "Config package.name = '$package_name'"
 
-  package_title=$(git config -f .bpan/config package.title) ||
-    error "Config has no package.title"
-  [[ $package_title != *CHANGEME* ]] ||
-    error "Please change the 'package.title' entry in '.bpan/config'"
-  o "Config package.title = '$package_title'"
-
-  package_version=$(git config -f .bpan/config package.version) ||
-    error "Config has no package.version"
-  o "Config package.version = '$package_version'"
-
-  package_license=$(git config -f .bpan/config package.license) ||
-    error "Config has no package.license"
-  o "Config package.license = '$package_license'"
-
-  package_summary=$(git config -f .bpan/config package.summary) ||
-    true
-  o "Config package.summary = '$package_summary'"
-
-  package_type=$(git config -f .bpan/config package.type) ||
-    error "Config has no package.type"
-  o "Config package.type = '$package_type'"
-
-  package_tag=$(git config -f .bpan/config package.tag) ||
-    true
-  o "Config package.tag = '$package_tag'"
+  publish:get-package-fields --say
 
   [[ $package_version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
     error "Config package.version '$package_version' does not match '#.#.#'"
@@ -536,6 +494,7 @@ Please add this new package to the \
     package: $package_id
     title:   $package_title
     version: $package_version
+    type:    $package_type
     license: $package_license
     author:  $package_author"
   )

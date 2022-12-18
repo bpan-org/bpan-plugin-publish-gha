@@ -25,8 +25,8 @@ package_repo=bpan-org/bashplus
 package_name=${package_repo#*/}
 package_dir=test/$package_name
 
-register_version=0.1.60
-publish_version=0.1.61
+register_version=0.1.63
+publish_version=0.1.64
 
 if [[ $(git hub pr-list -r "$index_repo") ]]; then
   die "https://github.com/$index_repo/pull already has PR"
