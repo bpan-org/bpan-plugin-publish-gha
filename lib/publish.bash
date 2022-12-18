@@ -326,7 +326,7 @@ publish-gha:post-status() (
 # Register logic
 #------------------------------------------------------------------------------
 publish:register() (
-  source-once util/db
+  source-once db
 
   github_id=$(ini:get user.github) ||
     error "Can't publish to GitHub." \
