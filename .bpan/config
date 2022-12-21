@@ -1,6 +1,6 @@
 [bpan]
-version = 0.1.103
-updated = 2022-12-18T18:31:46Z
+version = 0.1.105
+updated = 2022-12-21T18:28:46Z
 
 [package]
 name = bpan-plugin-publish-gha
