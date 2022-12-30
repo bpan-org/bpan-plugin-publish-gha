@@ -233,7 +233,7 @@ publish-gha:check() {
 
   : "Run the package's test suite"
   (
-    unset BPAN_DEBUG BPAN_DEBUG_BASH BPAN_DEBUG_BASH_X
+    unset BPAN_SET_X
     prove -v test
   ) || die "$package_id v$package_version failed tests"
 }
@@ -268,7 +268,7 @@ publish-gha:post-status() (
 
   comment_body=${comment_body/actions/actions${job_url#*/actions}}
 
-  set "${BPAN_DEBUG_BASH_X:-+x}"
+  set "${BPAN_SET_X:-+x}"
   if $ok; then
     l1=$(
       git -C .. diff HEAD^ |

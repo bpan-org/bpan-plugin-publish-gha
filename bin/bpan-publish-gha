@@ -32,11 +32,7 @@ init() {
 
   if true || # XXX send in request
      [[ ${bpan_publish_debug-} == true ]]; then
-    export BPAN_INDEX_UPDATE_DEBUG=true
-    export BPAN_DEBUG=-x
-    export BPAN_DEBUG_BASH=1
-    export BPAN_DEBUG_BASH_X=-x
-    export INI_DEBUG_BASH_X=+x
+    export BPAN_SET_X=-x
   fi
 }
 
